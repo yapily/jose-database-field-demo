@@ -1,0 +1,50 @@
+version: '3'
+services:
+  db:
+    container_name: postgres_jose_database_example
+    image: postgres:9.6.9
+    ports:
+      - "5435:5432"
+    hostname: postgres_jose_database_example
+    environment:
+      - POSTGRES_PASSWORD=local
+      - POSTGRES_USER=local
+      - POSTGRES_DB=jose-database-example-db
+    volumes:
+      - ./db/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+
+  alice-application:
+    container_name: alice-application
+    build:
+      application-alice/
+    ports:
+      - "8080:8080"
+    environment:
+      JOSE_DATABASE_KEYS_PATH: file:keys/
+      SPRING_R2DBC_HOST: postgres_jose_database_example
+      SPRING_R2DBC_PORT: 5432
+    volumes:
+      - ./keys:/keys
+
+
+  jose-reencrypt-database:
+    container_name: jose-reencrypt-database
+    image: yapily/jose-batch:latest
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres_jose_database_example:5432/jose-database-example-db"
+      SPRING_DATASOURCE_USERNAME: local
+      SPRING_DATASOURCE_PASSWORD: local
+
+      JOSE_DATABASE_KEYS_PATH: file:keys/
+      JOSE_DATABASE_ACTUATOR_ENABLED: "true"
+      JOSE_DATABASE_ACTUATOR_SHOW_DETAILS: "true"
+      JOSE_DATABASE_TOKENFORMAT: "JWS_JWE"
+      JOSE_BATCH_CHUNK_SIZE: "100"
+      JOSE_BATCH_PAGE_SIZE: "10"
+      JOSE_BATCH_TABLE: "person"
+      JOSE_BATCH_ID: "id"
+      JOSE_BATCH_FIELDS: "email"
+
+    volumes:
+      - ./keys:/keys

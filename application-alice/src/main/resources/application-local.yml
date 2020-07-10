@@ -1,0 +1,7 @@
+spring:
+  r2dbc:
+    host: localhost
+    port: 5435
+
+jose-database:
+  keys-path: classpath:keys/

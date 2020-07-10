@@ -1,0 +1,18 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+spring:
+  r2dbc:
+    database: jose-database-example-db
+    username: local
+    password: local
+
+jose-database:
+  keys-path: file:keys/
+  actuator:
+    enabled: true
+    show-details: true
+  tokenFormat: JWS_JWE

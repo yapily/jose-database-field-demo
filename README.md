@@ -17,50 +17,46 @@ The examples in this README will use `curl`, however, there is a Postman collect
 
 ## Architecture of this demo
 
-For this demo, we will spin up docker images directly via docker-compose. It's composed of the following components:
-- `application-alice`: will play the role of your spring boot app, which you want to access a PostgreSQL database with JOSE formatted field.
-- `db`: a simple PostgreSQL database that we will provision with a sample table `person`. You can find the init of the database in `./db/postgres/init.sql`
-- `jose-reencrypt-database`: A spin up image of the [JOSE batch](https://github.com/yapily/jose-batch) that will maintain your database field encrypted with the latest keys. 
-- `jose-cli`: we will use the CLI to rotate our keys and propagate the changes to our application alice and the database.
-- `./keys`: this folder contains the keys we will use for the encryption. Initially, we provided a set with only 2 valid keys: one for signing and one for encrypting.
+For this demo, you will spin up the following components as Docker images using docker-compose:
+- `application-alice`: This will play the role of your spring boot app which will access a PostgreSQL database with JOSE formatted fields.
+- `db`: This is a simple PostgreSQL database that you will provision with a sample table `person`. You can find the database schema at `./db/postgres/init.sql`
+- `jose-reencrypt-database`: This image pack the [JOSE batch](https://github.com/yapily/jose-batch) tool and ensures that the database fields are continually encrypted with the latest keys. 
+- `jose-cli`: This CLI will help you rotate your keys and propagate the changes to your application `alice` and `db`.
+- `./keys`: This folder contains all the keys (valid, expired, rotated) you will use for the encryption. Initially, you will be provided a set with only 2 valid keys: one for signing and one for encrypting.
 
 ### Application alice
 
-This application is a sample person directory. It will store a Pojo of a person in a database and offer APIs to retrieve them.
+This application is a sample `Person` directory that stores Pojos of the `Person` class in a database with APIs to create/retrieve them.
 
 A person will be represented with the following attributes:
-- name: the name of the person, that we will keep in clear
-- email: the email of the person, that we will want to store encrypted in our database
+- name: The name of the person that will be stored in plain text
+- email: The email of the person that will be encrypted in your database
 
 The application offers some basic REST endpoints:
-- `GET /persons/` : Get all the persons. It will decrypt the email on the fly and returns you the decrypted value
+- `GET /persons/`: Get all the `Person` objects. This enpoint decrypts the email on the fly and returns the decrypted value
 - `POST /persons/random?nb-entries=3`: Generate 3 random persons 
 
 In order to help you visualise the actual encryption happening behind the scene, we create an endpoint which returns a person as
 they are represented in the database, meaning with the email as a JWT:
 - `GET /persons/raw`: returns all the users as they are stored in the DB, in our case with the email as a JWS(JWE)
 
-We will want to see the current status of the database fields, like how many fields are encrypted with which keys.
-You could do this manually via the `/persons/raw` endpoint but it can be a very annoying job to do. Instead, we created an endpoint
-which would provide a summary of the JOSE database field status:
+You can use the `/persons/raw` endpoint in order to see the current status of the database fields for example, how many fields are encrypted with a particular set of keys, but this can be quite cumbersome to use. Alternatively, you can also use the following endpoint which provides a summary of the JOSE database field status:
 - `GET /actuator/jose-database` 
 
-As part of the JOSE-database feature, it offers a custom actuator endpoints which present you the current keys from the application angle.
-This is quite handy to verify that your application has the right set of keys.
-- `GET /database/status?details=true`: show you the status of our table `person` with the details for each row.
+One JOSE-database that you may find useful is the custom actuator endpoints which provide information about the current keys that the application is using. This is quite handy to verify that your application has the right set of keys.
+- `GET /database/status?details=true`: This shows you the status of the table `person` with the details for each row.
 
 ### db
 
-The DB would be a PostgreSQL with one table `person`. You can check the table in `./db/postgres/init.sql`
+This is a PostgreSQL database with one table `person`. See `./db/postgres/init.sql` for more information.
 
 ### jose-reencrypt-database
 
-It's our JOSE spring batch that we configured to run against our PostgreSQL database, on the table `person` for the field `email`.
-It's a job, meaning that once it's done re-encrypted the field, it will shut down. In this tutorial, we will run the job each time we do a new docker-compose.
+This is the JOSE spring batch tool that is configured to run against the PostgreSQL database on the table `person` for the field `email`.
+It's a job, meaning that once it finishes re-encrypting the field, it will shut down. In this tutorial, the job is executed each time we do a new docker-compose.
 
 ### `jose-cli`
-The JOSE CLI we uploaded to this repo was the latest at the time we write this line. You will need to have Java setup on your laptop first.
-You can verify you got the CLI in good shape by doing:
+The JOSE CLI that is uploaded to this repo was the latest at the time of writing this README. You will need to have Java installed on your machine as a prerequisite. You can verify that the CLI is ready for use by running the following:
 
 ```
  ./jose-cli/jose --version
@@ -71,8 +67,7 @@ You can verify you got the CLI in good shape by doing:
 ```
 ### ./keys
 
-We generate a set of keys to help you consume this repository. They are stored under `./keys`. If you want to create a new set of keys,
-you can use the CLI: `./jose-cli/jose jwks-sets init -o ./keys` 
+A set of keys have already been generated to help you quickly run through this example and are stored in the `./keys` directory. If you want to create a new set of keys, you can use the CLI: `./jose-cli/jose jwks-sets init -o ./keys` 
 
 
 ## Demo

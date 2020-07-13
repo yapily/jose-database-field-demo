@@ -2,7 +2,7 @@
 
 Demo of the JOSE database field encryption.
 
-It is recommended the you read the three part series which will explains the purpose and background behind this initiative. From now on, it will be assumed that you are familiar with the motivations and  and will concentrate on walking through a live example of how to run the various images created to implememt the database field encryption solution.
+It is recommended the you read the three part series which will explain the purpose and background behind this initiative. From now on, it will be assumed that you are familiar with the articles and the focus for this repo will focus on walking through an example of how to run the various images created to implememt the database field encryption solution.
 
 ## Setting up the tutorial
 

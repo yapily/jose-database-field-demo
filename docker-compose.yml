@@ -12,7 +12,7 @@ services:
       - POSTGRES_DB=jose-database-example-db
     volumes:
       - ./db/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
-
+      - ./postgres-data:/var/lib/postgresql/data
 
   alice-application:
     container_name: alice-application

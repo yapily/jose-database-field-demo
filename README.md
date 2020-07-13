@@ -17,7 +17,7 @@ The examples in this README will use `curl`, however, there is a Postman collect
 
 ## Architecture of this demo
 
-For this demo, you will spin up the following components as Docker images using docker-compose:
+In this demo, you will spin up the following components as Docker images using docker-compose:
 - `application-alice`: This will play the role of your spring boot app which will access a PostgreSQL database with JOSE formatted fields.
 - `db`: This is a simple PostgreSQL database that you will provision with a sample table `person`. You can find the database schema at `./db/postgres/init.sql`
 - `jose-reencrypt-database`: This image pack the [JOSE batch](https://github.com/yapily/jose-batch) tool and ensures that the database fields are continually encrypted with the latest keys. 
@@ -26,9 +26,9 @@ For this demo, you will spin up the following components as Docker images using 
 
 ### Application alice
 
-This application is a sample `Person` directory that stores Pojos of the `Person` class in a database with APIs to create/retrieve them.
+This application manages `Person` Pojos connected to a database with APIs to create/retrieve them.
 
-A person will be represented with the following attributes:
+A `Person` is a simple object with the following attributes:
 - name: The name of the person that will be stored in plain text
 - email: The email of the person that will be encrypted in your database
 

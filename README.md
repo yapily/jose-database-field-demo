@@ -2,22 +2,17 @@
 
 Demo of the JOSE database field encryption.
 
-We recommend you have a read of the series of article we published, they will explain you the purpose and background behind
-this initiative.
-From now on, we will assume you are familiar with the subject and will concentrate on showing you a live example of how
-the database field encryption works.
+It is recommended the you read the three part series which will explains the purpose and background behind this initiative. From now on, it will be assumed that you are familiar with the motivations and  and will concentrate on walking through a live example of how to run the various images created to implememt the database field encryption solution.
 
 ## Setting up the tutorial
 
 - Clone this repo. `git clone git@github.com:yapily/jose-database-field-demo.git; cd jose-database-field-demo`
 
-The repo contains all the componsents you need, in particular the [JOSE CLI](https://github.com/yapily/jose-cli) which is
-was uploaded for you under `./jose-cli`.
+The repo contains all the components you need, especially the [JOSE CLI](https://github.com/yapily/jose-cli) which is in the directory `./jose-cli`.
 
 ### Setup the postman collection
 
-We provided a Postman collection, available under `/postman`. This should help you play with the request. Although for making
-this readme self contains, we will give you the  example of requests with `curl`.
+The examples in this README will use `curl`, however, there is a Postman collection which is available in the `/postman` directory which you can use to quickly make requests.
 
 
 ## Architecture of this demo

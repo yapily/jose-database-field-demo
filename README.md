@@ -75,13 +75,13 @@ A set of keys have already been generated to help you quickly run through this e
 ### Step 1: Run the services and check the initial state
 
 #### Run the services
-We provided a docker compose. All you need to do is:
+To run the applications, run the following command with docker compose:
 
 ```
-docker-compose up
+docker-compose up -d
 ```
 
-This will spin up our 3 docker images. You can verify that you got them up and running via a docker ps
+This will spin up 3 Docker containers. You can verify that they are up and running `docker ps`:
 ```
 ❯ docker ps
 CONTAINER ID        IMAGE                                        COMMAND                  CREATED             STATUS              PORTS                    NAMES
@@ -90,7 +90,7 @@ CONTAINER ID        IMAGE                                        COMMAND        
 fd5505662230        yapily/jose-batch:latest                     "java -cp /app/resou…"   31 seconds ago      Up 30 seconds                                jose-reencrypt-database
 ```
 
-Note that if the container `jose-reencrypt-database` has already completed, it may already be shutdown. In that case, don't be surprise if you don't see it:
+Note that if the container `jose-reencrypt-database` has already completed, it may already be shutdown. In that case, don't be surprised if you don't see it:
 
 ```
 ❯ docker ps
@@ -98,9 +98,9 @@ CONTAINER ID        IMAGE                                        COMMAND        
 237c05591ac0        jose-database-field-demo_alice-application   "sh -c 'java $JAVA_O…"   5 minutes ago       Up 5 minutes        0.0.0.0:8080->8080/tcp   alice-application
 41fba9afaae8        postgres:9.6.9                               "docker-entrypoint.s…"   5 minutes ago       Up 5 minutes        0.0.0.0:5435->5432/tcp   postgres_jose_database_example
 ```
-#### Verify the initial the state
+#### Verify the initial state of the database
 
-You should be able to check the service is up and running by calling the database status endpoints:
+You can check that the service is up and running by calling the database status endpoint:
 
 ```
 curl --location --request GET 'http://localhost:8080/database/status'
@@ -116,8 +116,7 @@ Number of entries by key type:
 - VALID : 0 ;
 ```
 
-As you can see for now, we haven't got any person stored in the database.
-Let's generate 3 persons:
+The output shows that initially, there are no `Person` entities in the database. Next, generate 3 persons:
 
 ```
 curl --location --request POST 'http://localhost:8080/persons/random?nb-entries=3'
@@ -143,8 +142,7 @@ curl --location --request POST 'http://localhost:8080/persons/random?nb-entries=
 ]
 ```
 
-
-Now lets check what our database status is saying:
+Now, check the status of the database again:
 
 ```
 curl --location --request GET 'http://localhost:8080/database/status'
@@ -164,13 +162,13 @@ Number of JWTs using keys:
 - ed24f836-5e22-4e0c-b9b2-dc4ee85128a9 : 3 ;
 ```
 
-You can see that we got now 3 database rows and each of them got the `email` field encrypted with a set of valid keys.
-You see two keys `4ef01c58-8b45-4874-bdb0-864eb5ef7af6` and `ed24f836-5e22-4e0c-b9b2-dc4ee85128a9`, this is because the email is formatted as JWS_JWE.
-Meaning that we first encrypt the email as JWE using the key `ed24f836-5e22-4e0c-b9b2-dc4ee85128a9` and then we sign this JWE as a JWS, using the signing key `4ef01c58-8b45-4874-bdb0-864eb5ef7af6`.
+The output indicates that there are now 3 database rows (each with the `email` field encrypted with a set of valid keys).
+There are two keys, `4ef01c58-8b45-4874-bdb0-864eb5ef7af6` and `ed24f836-5e22-4e0c-b9b2-dc4ee85128a9` which are used to encrypt the email as a JWS_JWE.
+This means that the email is first encrtpted as a JWE using the key `ed24f836-5e22-4e0c-b9b2-dc4ee85128a9` and then signed as a JWS, using the signing key `4ef01c58-8b45-4874-bdb0-864eb5ef7af6`.
 
 
 
-Let's check now that our `GET /persons/` is able to read those persons and decrypt on the fly the emails.
+You can now check that the `GET /persons/` endpoint is able to read those `Person` entities and decrypt the email fields on the fly:
 
 ```
 curl --location --request GET 'http://localhost:8080/persons/'
@@ -196,9 +194,9 @@ curl --location --request GET 'http://localhost:8080/persons/'
 ]
 ```
 
-Success! Our application is indeed decrypting the email on the fly!
+Success! Your application is successfully decrypting the email field on the fly!
 
-To convinced you that they were encrypted in the first place, let's check our raw endpoints:
+To be convinced that they were encrypted in the first place, check the raw endpoint:
 
 ```
 curl --location --request GET 'http://localhost:8080/persons/raw'
@@ -225,9 +223,9 @@ curl --location --request GET 'http://localhost:8080/persons/raw'
 ```
 
 
-##### Check the actuator endpoints
+##### Check the actuator endpoint
 
-Let's check our JOSE database actuator endpoints.
+Check the JOSE database actuator endpoint:
 
 ```
 curl --location --request GET 'http://localhost:8080/actuator/jose-database'
@@ -277,16 +275,15 @@ curl --location --request GET 'http://localhost:8080/actuator/jose-database'
 }
 ```
 
-As you can see, your JWK sets have been loaded properly by our application which says it has only 2 valid keys and no revoked or expired keys.
-We are all set. Our system is in cruise status, meaning that it could start serving the APIs and keep encrypting/decrypting emails.
+This output shows that your JWK sets have been loaded properly by the application with only 2 valid keys and no revoked or expired keys. The system is in cruise mode which means it is able to start serving the APIs while continuing to encrypt/decrypt emails.
 
 ### Step 2: Key rotation
 
-Now let's see how we can rotate our keys and make sure they are propagated properly to our applications and the old fields of the database.
+Now you will see how to rotate keys and make sure they are propagated properly to your applications and to the old fields in the database.
 
 #### Generate a new set of keys by rotating the current keys
 
-We will use our CLI for that:
+You will use the CLI for that:
 
 ```
 ./jose-cli/jose jwks-sets rotate -k ./keys -o ./keys
@@ -306,9 +303,7 @@ We will use our CLI for that:
    "2020-07-10 14:48:34.030  INFO : Key rotation completed.
 ```
 
-the `-k` is to specify our current set of keys and `-o` where we want to output the new one. Here, we are overriding the current one with the new set of keys.
-
-You will have a different set of keys than me. In my case, I got the following keys:
+the `-k` flag specifies the directory to your current set of keys and `-o` specififes the directory to where you want to generate the new ones. In this example, you are overriding the current keys with the new set of keys.
 
 ```
 cat ./keys/valid-keys.json
@@ -395,7 +390,7 @@ cat ./keys/revoked-keys.json
 ```
 
 
-Now that we got our set of keys rotated, we will propagate them to our demo.
+Now that you have rotated your keys, the next step is to propagate them to the application.
 
 #### Use the rotated keys
 

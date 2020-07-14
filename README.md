@@ -275,7 +275,7 @@ curl --location --request GET 'http://localhost:8080/actuator/jose-database'
 }
 ```
 
-This output shows that your JWK sets have been loaded properly by the application with only 2 valid keys and no revoked or expired keys. The system is in cruise mode which means it is able to start serving the APIs while continuing to encrypt/decrypt emails.
+This output shows that your JWK sets have been loaded by the application properly with only 2 valid keys and no revoked or expired keys. The system is in cruise mode which means it is able to start serving the APIs while continuing to encrypt/decrypt emails.
 
 ### Step 2: Key rotation
 
@@ -283,7 +283,7 @@ Now you will see how to rotate keys and make sure they are propagated properly t
 
 #### Generate a new set of keys by rotating the current keys
 
-You will use the CLI for that:
+This is done by using the CLI:
 
 ```
 ./jose-cli/jose jwks-sets rotate -k ./keys -o ./keys
@@ -303,7 +303,7 @@ You will use the CLI for that:
    "2020-07-10 14:48:34.030  INFO : Key rotation completed.
 ```
 
-the `-k` flag specifies the directory to your current set of keys and `-o` specififes the directory to where you want to generate the new ones. In this example, you are overriding the current keys with the new set of keys.
+The `-k` flag specifies the directory to your current set of keys and `-o` specififes the directory to where you want to generate the new ones. In this example, you are overriding the current keys with the new set of keys.
 
 ```
 cat ./keys/valid-keys.json
@@ -394,23 +394,20 @@ Now that you have rotated your keys, the next step is to propagate them to the a
 
 #### Use the rotated keys
 
-In order to show you why we need the re-encrypt database batch, what I will do is first not call it. This way you will be able to observe the bad state of the database
-and why it's essential to call this batch.
-
-For simplicity, we will shutdown our demo first:
+In order to see the necessity for the batch tool to re-encrypt database, you will first observe the database in its bad state. To make things easier, first shutdown the demo application:
 
 ```
 docker-compose down
 ```
 
-Then only start the `db` and the `alice-application`
+Next, only only start up `db` and `alice-application`:
 
 ```
-docker-compose up db alice-application
+docker-compose up -d db alice-application
 ```
 
 
-The first thing we will do is check the actuator endpoints to verify that alice got the new keys and not the old one:
+Now, check the actuator endpoints to verify that the alice application is using the new keys and not the old ones:
 
 ```
 curl --location --request GET 'http://localhost:8080/actuator/jose-database'
@@ -475,9 +472,9 @@ curl --location --request GET 'http://localhost:8080/actuator/jose-database'
 }
 ```
 
-You can see that our application has successfully loaded the new keys. 
+You can see that the application has successfully loaded the new keys. 
 
-Let's check that our database status endpoints says about the situation:
+Next, check that database status endpoint:
 
 ```
 curl --location --request GET 'http://localhost:8080/database/status'
@@ -497,9 +494,9 @@ Number of JWTs using keys:
 - ed24f836-5e22-4e0c-b9b2-dc4ee85128a9 : 3 ;
 ```
 
-As you would have expected, the current row hasn't been updated. It means we current got 3 rows that are using our old keys.
+This output is exactly the same as before except the previously `VALID` keys are now `EXPIRED`. No rows have been updated and tne fields are using the old keys.
 
-Let's verify that we can still read them:
+You can verify that you are still able to decrypt the fields by using the `/persons` endpoint:
 ```
 curl --location --request GET 'http://localhost:8080/persons/'
 ```
@@ -524,10 +521,10 @@ curl --location --request GET 'http://localhost:8080/persons/'
 ]
 ```
 
-Success!! This is an important feature from our application to allow a smooth rotation of the keys. This will allow us to rotate our keys without downtime.
+Success!! This is an important feature required for the application to allow the smooth rotation of keys without any downtime.
 
 
-What happen now if we create new persons? Let's check that:
+Next, see what happens when you create new `Person` objects:
 ```
 curl --location --request POST 'http://localhost:8080/persons/random?nb-entries=3'
 ```
@@ -552,7 +549,7 @@ curl --location --request POST 'http://localhost:8080/persons/random?nb-entries=
 ]
 ```
 
-Let's check again the status of our database:
+Check the status of the database again:
 
 ```
 curl --location --request GET 'http://localhost:8080/database/status'
@@ -574,8 +571,7 @@ Number of JWTs using keys:
 - ed24f836-5e22-4e0c-b9b2-dc4ee85128a9 : 3 ;
 ```
 
-You can see that our new entries got encrypted using the valid keys. Our application is therefore able to read fields encrypted with expired keys but new entries would be encrypted using the latest keys.
-This is a good news as this assure us that once we will have migrated the old field with the latest key, no application will produce rows encrypted with the old keys.
+You can see that the new entries are encrypted using the valid keys. Your application is therefore able to read fields encrypted with expired keys but new entries will always be encrypted using the latest keys. This is good news as it proves that once you migrate fields encrypted with expired keys to the latest keys, the application will no longer contain any rows encrypted with the old keys.
 
 
 ### Step 3: Migrate our old fields by re-encrypting them with the new valid keys.

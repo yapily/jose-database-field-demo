@@ -400,7 +400,7 @@ In order to see the necessity for the batch tool to re-encrypt database, you wil
 docker-compose down
 ```
 
-Next, only only start up `db` and `alice-application`:
+Next, only start up `db` and `alice-application`:
 
 ```
 docker-compose up -d db alice-application

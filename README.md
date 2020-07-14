@@ -1,71 +1,62 @@
 # JOSE database field encryption demo
 
-Demo of the JOSE database field encryption.
+Demo for JOSE database field encryption using Docker compose.
 
-We recommend you have a read of the series of article we published, they will explain you the purpose and background behind
-this initiative.
-From now on, we will assume you are familiar with the subject and will concentrate on showing you a live example of how
-the database field encryption works.
+It is recommended the you read the three part series which will explain the purpose and background behind this initiative. From now on, it will be assumed that you are familiar with the articles and the focus for this repo will focus on walking through an example of how to run the various images created to implememt the database field encryption solution.
 
 ## Setting up the tutorial
 
 - Clone this repo. `git clone git@github.com:yapily/jose-database-field-demo.git; cd jose-database-field-demo`
 
-The repo contains all the componsents you need, in particular the [JOSE CLI](https://github.com/yapily/jose-cli) which is
-was uploaded for you under `./jose-cli`.
+The repo contains all the components you need, especially the [JOSE CLI](https://github.com/yapily/jose-cli) which is in the directory `./jose-cli`.
 
 ### Setup the postman collection
 
-We provided a Postman collection, available under `/postman`. This should help you play with the request. Although for making
-this readme self contains, we will give you the  example of requests with `curl`.
+The examples in this README will use `curl`, however, there is a Postman collection which is available in the `/postman` directory which you can use to quickly make requests.
 
 
 ## Architecture of this demo
 
-For this demo, we will spin up docker images directly via docker-compose. It's composed of the following components:
-- `application-alice`: will play the role of your spring boot app, which you want to access a PostgreSQL database with JOSE formatted field.
-- `db`: a simple PostgreSQL database that we will provision with a sample table `person`. You can find the init of the database in `./db/postgres/init.sql`
-- `jose-reencrypt-database`: A spin up image of the [JOSE batch](https://github.com/yapily/jose-batch) that will maintain your database field encrypted with the latest keys. 
-- `jose-cli`: we will use the CLI to rotate our keys and propagate the changes to our application alice and the database.
-- `./keys`: this folder contains the keys we will use for the encryption. Initially, we provided a set with only 2 valid keys: one for signing and one for encrypting.
+In this demo, you will spin up the following components as Docker images using docker-compose:
+- `application-alice`: This will play the role of your spring boot app which will access a PostgreSQL database with JOSE formatted fields.
+- `db`: This is a simple PostgreSQL database that you will provision with a sample table `person`. You can find the database schema at `./db/postgres/init.sql`
+- `jose-reencrypt-database`: This image pack the [JOSE batch](https://github.com/yapily/jose-batch) tool and ensures that the database fields are continually encrypted with the latest keys. 
+- `jose-cli`: This CLI will help you rotate your keys and propagate the changes to your application `alice` and `db`.
+- `./keys`: This folder contains all the keys (valid, expired, rotated) you will use for the encryption. Initially, you will be provided a set with only 2 valid keys: one for signing and one for encrypting.
 
 ### Application alice
 
-This application is a sample person directory. It will store a Pojo of a person in a database and offer APIs to retrieve them.
+This application manages `Person` Pojos connected to a database with APIs to create/retrieve them.
 
-A person will be represented with the following attributes:
-- name: the name of the person, that we will keep in clear
-- email: the email of the person, that we will want to store encrypted in our database
+A `Person` is a simple object with the following attributes:
+- name: The name of the person that will be stored in plain text
+- email: The email of the person that will be encrypted in your database
 
 The application offers some basic REST endpoints:
-- `GET /persons/` : Get all the persons. It will decrypt the email on the fly and returns you the decrypted value
+- `GET /persons/`: Get all the `Person` objects. This enpoint decrypts the email on the fly and returns the decrypted value
 - `POST /persons/random?nb-entries=3`: Generate 3 random persons 
 
 In order to help you visualise the actual encryption happening behind the scene, we create an endpoint which returns a person as
 they are represented in the database, meaning with the email as a JWT:
 - `GET /persons/raw`: returns all the users as they are stored in the DB, in our case with the email as a JWS(JWE)
 
-We will want to see the current status of the database fields, like how many fields are encrypted with which keys.
-You could do this manually via the `/persons/raw` endpoint but it can be a very annoying job to do. Instead, we created an endpoint
-which would provide a summary of the JOSE database field status:
+You can use the `/persons/raw` endpoint in order to see the current status of the database fields for example, how many fields are encrypted with a particular set of keys, but this can be quite cumbersome to use. Alternatively, you can also use the following endpoint which provides a summary of the JOSE database field status:
 - `GET /actuator/jose-database` 
 
-As part of the JOSE-database feature, it offers a custom actuator endpoints which present you the current keys from the application angle.
-This is quite handy to verify that your application has the right set of keys.
-- `GET /database/status?details=true`: show you the status of our table `person` with the details for each row.
+One JOSE-database that you may find useful is the custom actuator endpoints which provide information about the current keys that the application is using. This is quite handy to verify that your application has the right set of keys.
+- `GET /database/status?details=true`: This shows you the status of the table `person` with the details for each row.
 
 ### db
 
-The DB would be a PostgreSQL with one table `person`. You can check the table in `./db/postgres/init.sql`
+This is a PostgreSQL database with one table `person`. See `./db/postgres/init.sql` for more information.
 
 ### jose-reencrypt-database
 
-It's our JOSE spring batch that we configured to run against our PostgreSQL database, on the table `person` for the field `email`.
-It's a job, meaning that once it's done re-encrypted the field, it will shut down. In this tutorial, we will run the job each time we do a new docker-compose.
+This is the JOSE spring batch tool that is configured to run against the PostgreSQL database on the table `person` for the field `email`.
+It's a job, meaning that once it finishes re-encrypting the field, it will shut down. In this tutorial, the job is executed each time we do a new docker-compose.
 
 ### `jose-cli`
-The JOSE CLI we uploaded to this repo was the latest at the time we write this line. You will need to have Java setup on your laptop first.
-You can verify you got the CLI in good shape by doing:
+The JOSE CLI that is uploaded to this repo was the latest at the time of writing this README. You will need to have **Java 11** installed on your machine as a prerequisite. You can verify that the CLI is ready for use by running the following:
 
 ```
  ./jose-cli/jose --version
@@ -76,8 +67,7 @@ You can verify you got the CLI in good shape by doing:
 ```
 ### ./keys
 
-We generate a set of keys to help you consume this repository. They are stored under `./keys`. If you want to create a new set of keys,
-you can use the CLI: `./jose-cli/jose jwks-sets init -o ./keys` 
+A set of keys have already been generated to help you quickly run through this example and are stored in the `./keys` directory. If you want to create a new set of keys, you can use the CLI: `./jose-cli/jose jwks-sets init -o ./keys` 
 
 
 ## Demo
@@ -85,13 +75,13 @@ you can use the CLI: `./jose-cli/jose jwks-sets init -o ./keys`
 ### Step 1: Run the services and check the initial state
 
 #### Run the services
-We provided a docker compose. All you need to do is:
+To run the applications, run the following command with docker compose:
 
 ```
-docker-compose up
+docker-compose up -d
 ```
 
-This will spin up our 3 docker images. You can verify that you got them up and running via a docker ps
+This will spin up 3 Docker containers. You can verify that they are up and running `docker ps`:
 ```
 ❯ docker ps
 CONTAINER ID        IMAGE                                        COMMAND                  CREATED             STATUS              PORTS                    NAMES
@@ -100,7 +90,7 @@ CONTAINER ID        IMAGE                                        COMMAND        
 fd5505662230        yapily/jose-batch:latest                     "java -cp /app/resou…"   31 seconds ago      Up 30 seconds                                jose-reencrypt-database
 ```
 
-Note that if the container `jose-reencrypt-database` has already completed, it may already be shutdown. In that case, don't be surprise if you don't see it:
+Note that if the container `jose-reencrypt-database` has already completed, it may already be shutdown. In that case, don't be surprised if you don't see it:
 
 ```
 ❯ docker ps
@@ -108,9 +98,9 @@ CONTAINER ID        IMAGE                                        COMMAND        
 237c05591ac0        jose-database-field-demo_alice-application   "sh -c 'java $JAVA_O…"   5 minutes ago       Up 5 minutes        0.0.0.0:8080->8080/tcp   alice-application
 41fba9afaae8        postgres:9.6.9                               "docker-entrypoint.s…"   5 minutes ago       Up 5 minutes        0.0.0.0:5435->5432/tcp   postgres_jose_database_example
 ```
-#### Verify the initial the state
+#### Verify the initial state of the database
 
-You should be able to check the service is up and running by calling the database status endpoints:
+You can check that the service is up and running by calling the database status endpoint:
 
 ```
 curl --location --request GET 'http://localhost:8080/database/status'
@@ -126,8 +116,7 @@ Number of entries by key type:
 - VALID : 0 ;
 ```
 
-As you can see for now, we haven't got any person stored in the database.
-Let's generate 3 persons:
+The output shows that initially, there are no `Person` entities in the database. Next, generate 3 persons:
 
 ```
 curl --location --request POST 'http://localhost:8080/persons/random?nb-entries=3'
@@ -153,8 +142,7 @@ curl --location --request POST 'http://localhost:8080/persons/random?nb-entries=
 ]
 ```
 
-
-Now lets check what our database status is saying:
+Now, check the status of the database again:
 
 ```
 curl --location --request GET 'http://localhost:8080/database/status'
@@ -174,13 +162,13 @@ Number of JWTs using keys:
 - ed24f836-5e22-4e0c-b9b2-dc4ee85128a9 : 3 ;
 ```
 
-You can see that we got now 3 database rows and each of them got the `email` field encrypted with a set of valid keys.
-You see two keys `4ef01c58-8b45-4874-bdb0-864eb5ef7af6` and `ed24f836-5e22-4e0c-b9b2-dc4ee85128a9`, this is because the email is formatted as JWS_JWE.
-Meaning that we first encrypt the email as JWE using the key `ed24f836-5e22-4e0c-b9b2-dc4ee85128a9` and then we sign this JWE as a JWS, using the signing key `4ef01c58-8b45-4874-bdb0-864eb5ef7af6`.
+The output indicates that there are now 3 database rows (each with the `email` field encrypted with a set of valid keys).
+There are two keys, `4ef01c58-8b45-4874-bdb0-864eb5ef7af6` and `ed24f836-5e22-4e0c-b9b2-dc4ee85128a9` which are used to encrypt the email as a JWS_JWE.
+This means that the email is first encrtpted as a JWE using the key `ed24f836-5e22-4e0c-b9b2-dc4ee85128a9` and then signed as a JWS, using the signing key `4ef01c58-8b45-4874-bdb0-864eb5ef7af6`.
 
 
 
-Let's check now that our `GET /persons/` is able to read those persons and decrypt on the fly the emails.
+You can now check that the `GET /persons/` endpoint is able to read those `Person` entities and decrypt the email fields on the fly:
 
 ```
 curl --location --request GET 'http://localhost:8080/persons/'
@@ -206,9 +194,9 @@ curl --location --request GET 'http://localhost:8080/persons/'
 ]
 ```
 
-Success! Our application is indeed decrypting the email on the fly!
+Success! Your application is successfully decrypting the email field on the fly!
 
-To convinced you that they were encrypted in the first place, let's check our raw endpoints:
+To be convinced that they were encrypted in the first place, check the raw endpoint:
 
 ```
 curl --location --request GET 'http://localhost:8080/persons/raw'
@@ -235,9 +223,9 @@ curl --location --request GET 'http://localhost:8080/persons/raw'
 ```
 
 
-##### Check the actuator endpoints
+##### Check the actuator endpoint
 
-Let's check our JOSE database actuator endpoints.
+Check the JOSE database actuator endpoint:
 
 ```
 curl --location --request GET 'http://localhost:8080/actuator/jose-database'
@@ -287,16 +275,15 @@ curl --location --request GET 'http://localhost:8080/actuator/jose-database'
 }
 ```
 
-As you can see, your JWK sets have been loaded properly by our application which says it has only 2 valid keys and no revoked or expired keys.
-We are all set. Our system is in cruise status, meaning that it could start serving the APIs and keep encrypting/decrypting emails.
+This output shows that your JWK sets have been loaded by the application properly with only 2 valid keys and no revoked or expired keys. The system is in cruise mode which means it is able to start serving the APIs while continuing to encrypt/decrypt emails.
 
 ### Step 2: Key rotation
 
-Now let's see how we can rotate our keys and make sure they are propagated properly to our applications and the old fields of the database.
+Now you will see how to rotate keys and make sure they are propagated properly to your applications and to the old fields in the database.
 
 #### Generate a new set of keys by rotating the current keys
 
-We will use our CLI for that:
+This is done by using the CLI:
 
 ```
 ./jose-cli/jose jwks-sets rotate -k ./keys -o ./keys
@@ -316,9 +303,7 @@ We will use our CLI for that:
    "2020-07-10 14:48:34.030  INFO : Key rotation completed.
 ```
 
-the `-k` is to specify our current set of keys and `-o` where we want to output the new one. Here, we are overriding the current one with the new set of keys.
-
-You will have a different set of keys than me. In my case, I got the following keys:
+The `-k` flag specifies the directory to your current set of keys and `-o` specififes the directory to where you want to generate the new ones. In this example, you are overriding the current keys with the new set of keys.
 
 ```
 cat ./keys/valid-keys.json
@@ -405,27 +390,24 @@ cat ./keys/revoked-keys.json
 ```
 
 
-Now that we got our set of keys rotated, we will propagate them to our demo.
+Now that you have rotated your keys, the next step is to propagate them to the application.
 
 #### Use the rotated keys
 
-In order to show you why we need the re-encrypt database batch, what I will do is first not call it. This way you will be able to observe the bad state of the database
-and why it's essential to call this batch.
-
-For simplicity, we will shutdown our demo first:
+In order to see the necessity for the batch tool to re-encrypt database, you will first observe the database in its bad state. To make things easier, first shutdown the demo application:
 
 ```
 docker-compose down
 ```
 
-Then only start the `db` and the `alice-application`
+Next, only only start up `db` and `alice-application`:
 
 ```
-docker-compose up db alice-application
+docker-compose up -d db alice-application
 ```
 
 
-The first thing we will do is check the actuator endpoints to verify that alice got the new keys and not the old one:
+Now, check the actuator endpoints to verify that the alice application is using the new keys and not the old ones:
 
 ```
 curl --location --request GET 'http://localhost:8080/actuator/jose-database'
@@ -490,9 +472,9 @@ curl --location --request GET 'http://localhost:8080/actuator/jose-database'
 }
 ```
 
-You can see that our application has successfully loaded the new keys. 
+You can see that the application has successfully loaded the new keys. 
 
-Let's check that our database status endpoints says about the situation:
+Next, check that database status endpoint:
 
 ```
 curl --location --request GET 'http://localhost:8080/database/status'
@@ -512,9 +494,9 @@ Number of JWTs using keys:
 - ed24f836-5e22-4e0c-b9b2-dc4ee85128a9 : 3 ;
 ```
 
-As you would have expected, the current row hasn't been updated. It means we current got 3 rows that are using our old keys.
+This output is exactly the same as before except the previously `VALID` keys are now `EXPIRED`. No rows have been updated and tne fields are using the old keys. Note that the Ids of the JWTs match the `kid` of the expired keys. 
 
-Let's verify that we can still read them:
+You can verify that you are still able to decrypt the fields by using the `/persons` endpoint:
 ```
 curl --location --request GET 'http://localhost:8080/persons/'
 ```
@@ -539,10 +521,10 @@ curl --location --request GET 'http://localhost:8080/persons/'
 ]
 ```
 
-Success!! This is an important feature from our application to allow a smooth rotation of the keys. This will allow us to rotate our keys without downtime.
+Success!! This is an important feature required for the application to allow the smooth rotation of keys without any downtime.
 
 
-What happen now if we create new persons? Let's check that:
+Next, see what happens when you create new `Person` objects:
 ```
 curl --location --request POST 'http://localhost:8080/persons/random?nb-entries=3'
 ```
@@ -567,7 +549,7 @@ curl --location --request POST 'http://localhost:8080/persons/random?nb-entries=
 ]
 ```
 
-Let's check again the status of our database:
+Check the status of the database again:
 
 ```
 curl --location --request GET 'http://localhost:8080/database/status'
@@ -589,15 +571,13 @@ Number of JWTs using keys:
 - ed24f836-5e22-4e0c-b9b2-dc4ee85128a9 : 3 ;
 ```
 
-You can see that our new entries got encrypted using the valid keys. Our application is therefore able to read fields encrypted with expired keys but new entries would be encrypted using the latest keys.
-This is a good news as this assure us that once we will have migrated the old field with the latest key, no application will produce rows encrypted with the old keys.
+You can see that the new entries are encrypted using the valid keys. Your application is therefore able to read fields encrypted with expired keys but new entries will always be encrypted using the latest keys. Note that the first two ids are the valid `kid` values for the valid keys and the last two are the `kid` values for the expired keys. This is good news as it proves that once you migrate fields encrypted with expired keys to the latest keys, the application will no longer contain any rows encrypted with the old keys. 
 
 
-### Step 3: Migrate our old fields by re-encrypting them with the new valid keys.
+### Step 3: Migrate the old fields by re-encrypting them with the new valid keys.
+In step 2, you didn't run the `jose-reencrypt-database` docker container in order to see the importance of migration.
 
-If you remember in step 2, we voluntary didn't ran the `jose-reencrypt-database` docker container. This was a good way to show the importance of this migration.
-
-Let's fix the state of our database by running the re-encryption batch job:
+You can now run the re-encryption batch job to migrate the database:
 
 ```
 docker-compose up jose-reencrypt-database
@@ -605,8 +585,7 @@ docker-compose up jose-reencrypt-database
 
 Note that the alice application is still up and running and potentially serving requests.
 
-Once you see a logs from our batch saying `!!! JOB FINISHED!!`. It means we should be back to our feet with a good database status.
-Let's check that now:
+Once you see `!!! JOB FINISHED!!` in the logs, the batch job has successfully completed. After running the batch job, once again check the status of the database:
 
 ```
 curl --location --request GET 'http://localhost:8080/database/status'
@@ -626,10 +605,9 @@ Number of JWTs using keys:
 - 8e9bb522-bde6-4491-ae0b-3e92427c0ad2 : 6 ;
 ```
 
-Success!! Now the database got all the emails using the latest valid keys. 
+Success!!! Now the database has all the emails fields encrypted using the latest valid keys. Note that once again, the id of the JWTs being used are the `kid` values for the valid keys. 
 
 
 ### Conclusion
 
-This complete our demo of the database fields encryption using docker. In the third part of our articles, we will see how
-you can achieve the same on your kubernetes cluster.
+This completes the demo for encrypting database fields using Docker. In the third part of my article series, you will see how you can achieve the same thing on a Kubernetes cluster.

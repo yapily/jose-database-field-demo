@@ -1,6 +1,6 @@
 # JOSE database field encryption demo
 
-Demo of the JOSE database field encryption.
+Demo for JOSE database field encryption using Docker compose.
 
 It is recommended the you read the three part series which will explain the purpose and background behind this initiative. From now on, it will be assumed that you are familiar with the articles and the focus for this repo will focus on walking through an example of how to run the various images created to implememt the database field encryption solution.
 
@@ -56,7 +56,7 @@ This is the JOSE spring batch tool that is configured to run against the Postgre
 It's a job, meaning that once it finishes re-encrypting the field, it will shut down. In this tutorial, the job is executed each time we do a new docker-compose.
 
 ### `jose-cli`
-The JOSE CLI that is uploaded to this repo was the latest at the time of writing this README. You will need to have Java installed on your machine as a prerequisite. You can verify that the CLI is ready for use by running the following:
+The JOSE CLI that is uploaded to this repo was the latest at the time of writing this README. You will need to have **Java 11** installed on your machine as a prerequisite. You can verify that the CLI is ready for use by running the following:
 
 ```
  ./jose-cli/jose --version

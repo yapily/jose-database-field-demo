@@ -494,7 +494,7 @@ Number of JWTs using keys:
 - ed24f836-5e22-4e0c-b9b2-dc4ee85128a9 : 3 ;
 ```
 
-This output is exactly the same as before except the previously `VALID` keys are now `EXPIRED`. No rows have been updated and tne fields are using the old keys.
+This output is exactly the same as before except the previously `VALID` keys are now `EXPIRED`. No rows have been updated and tne fields are using the old keys. Note that the Ids of the JWTs match the `kid` of the expired keys. 
 
 You can verify that you are still able to decrypt the fields by using the `/persons` endpoint:
 ```
@@ -571,14 +571,13 @@ Number of JWTs using keys:
 - ed24f836-5e22-4e0c-b9b2-dc4ee85128a9 : 3 ;
 ```
 
-You can see that the new entries are encrypted using the valid keys. Your application is therefore able to read fields encrypted with expired keys but new entries will always be encrypted using the latest keys. This is good news as it proves that once you migrate fields encrypted with expired keys to the latest keys, the application will no longer contain any rows encrypted with the old keys.
+You can see that the new entries are encrypted using the valid keys. Your application is therefore able to read fields encrypted with expired keys but new entries will always be encrypted using the latest keys. Note that the first two ids are the valid `kid` values for the valid keys and the last two are the `kid` values for the expired keys. This is good news as it proves that once you migrate fields encrypted with expired keys to the latest keys, the application will no longer contain any rows encrypted with the old keys. 
 
 
-### Step 3: Migrate our old fields by re-encrypting them with the new valid keys.
+### Step 3: Migrate the old fields by re-encrypting them with the new valid keys.
+In step 2, you didn't run the `jose-reencrypt-database` docker container in order to see the importance of migration.
 
-If you remember in step 2, we voluntary didn't ran the `jose-reencrypt-database` docker container. This was a good way to show the importance of this migration.
-
-Let's fix the state of our database by running the re-encryption batch job:
+You can now run the re-encryption batch job to migrate the database:
 
 ```
 docker-compose up jose-reencrypt-database
@@ -586,8 +585,7 @@ docker-compose up jose-reencrypt-database
 
 Note that the alice application is still up and running and potentially serving requests.
 
-Once you see a logs from our batch saying `!!! JOB FINISHED!!`. It means we should be back to our feet with a good database status.
-Let's check that now:
+Once you see `!!! JOB FINISHED!!` in the logs, the batch job has successfully completed. After running the batch job, once again check the status of the database:
 
 ```
 curl --location --request GET 'http://localhost:8080/database/status'
@@ -607,10 +605,9 @@ Number of JWTs using keys:
 - 8e9bb522-bde6-4491-ae0b-3e92427c0ad2 : 6 ;
 ```
 
-Success!! Now the database got all the emails using the latest valid keys. 
+Success!!! Now the database has all the emails fields encrypted using the latest valid keys. Note that once again, the id of the JWTs being used are the `kid` values for the valid keys. 
 
 
 ### Conclusion
 
-This complete our demo of the database fields encryption using docker. In the third part of our articles, we will see how
-you can achieve the same on your kubernetes cluster.
+This completes the demo for encrypting database fields using Docker. In the third part of my article series, you will see how you can achieve the same thing on a Kubernetes cluster.

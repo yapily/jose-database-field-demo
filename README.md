@@ -32,6 +32,8 @@ A `Person` is a simple object with the following attributes:
 - name: The name of the person that will be stored in plain text
 - email: The email of the person that will be encrypted in your database
 
+This application is using the [JOSE-Database](https://github.com/yapily/jose-database) open source, a Spring library contributed by Yapily illustrated in this tutorial.
+
 The application offers some basic REST endpoints:
 - `GET /persons/`: Get all the `Person` objects. This enpoint decrypts the email on the fly and returns the decrypted value
 - `POST /persons/random?nb-entries=3`: Generate 3 random persons 

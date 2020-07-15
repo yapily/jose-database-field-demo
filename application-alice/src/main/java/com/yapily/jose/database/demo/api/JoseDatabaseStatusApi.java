@@ -46,7 +46,7 @@ public class JoseDatabaseStatusApi {
         return rawPersonRepository.findAll().collectList().flatMap(rawPersons -> {
             StringBuilder status = new StringBuilder();
             status.append("Status of the progress database at " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime())).append("\n");
-            status.append("- Nb of raws: " + rawPersons.size()).append("\n");
+            status.append("- Nb of rows: " + rawPersons.size()).append("\n");
 
             //Prepare some counters
             Map<String, Long> countersJWTsByKeyID = new HashMap<>();

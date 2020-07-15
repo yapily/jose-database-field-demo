@@ -108,7 +108,7 @@ curl --location --request GET 'http://localhost:8080/database/status'
 
 ```
 Status of the progress database at 2020-07-10 13:29:26
-- Nb of raws: 0
+- Nb of rows: 0
 -------------
 Number of entries by key type:
 - REVOKED : 0 ;
@@ -150,7 +150,7 @@ curl --location --request GET 'http://localhost:8080/database/status'
 
 ```
 Status of the progress database at 2020-07-10 13:34:41
-- Nb of raws: 3
+- Nb of rows: 3
 -------------
 Number of entries by key type:
 - REVOKED : 0 ;
@@ -482,7 +482,7 @@ curl --location --request GET 'http://localhost:8080/database/status'
 
 ```
 Status of the progress database at 2020-07-10 14:00:48
-- Nb of raws: 3
+- Nb of rows: 3
 -------------
 Number of entries by key type:
 - REVOKED : 0 ;
@@ -557,7 +557,7 @@ curl --location --request GET 'http://localhost:8080/database/status'
 
 ```
 Status of the progress database at 2020-07-10 14:04:40
-- Nb of raws: 6
+- Nb of rows: 6
 -------------
 Number of entries by key type:
 - REVOKED : 0 ;
@@ -593,7 +593,7 @@ curl --location --request GET 'http://localhost:8080/database/status'
 
 ```
 Status of the progress database at 2020-07-10 14:09:47
-- Nb of raws: 6
+- Nb of rows: 6
 -------------
 Number of entries by key type:
 - REVOKED : 0 ;
